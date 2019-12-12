@@ -66,8 +66,46 @@ $('#userBox').on('click', '.edit', function () {
 		type: "get",
 		url: "/users/" + id,
 		success: function (response) {
-		var html=template('modifyTpl',response)
-		$('#modifyBox').html(html);
+			var html = template('modifyTpl', response)
+			$('#modifyBox').html(html);
 		}
 	});
+})
+$('#modifyBox').on('submit', '#modifyForm', function () {
+	var formData = $(this).serialize()
+	var id = $(this).attr('data-id')
+	$.ajax({
+		type: "put",
+		url: "/users/" + id,
+		data: formData,
+		success: function (response) {
+			location.reload()
+		}
+
+	});
+	return false
+})
+
+
+//	删除
+$('#userBox').on('click', '.dele', function () {
+	var id = $(this).attr('data')
+	console.log(id);
+	var isConfirm = confirm('您真的要删除吗?');
+	if (isConfirm) {
+		$.ajax({
+			type: "delete",
+			url: "/users/" + id,
+			// data: "data",
+			success: function (response) {
+				// remove()
+				location.reload()
+			},
+			error: function () {
+				alert('删除失败')
+			}
+
+		});
+	}
+
 })
