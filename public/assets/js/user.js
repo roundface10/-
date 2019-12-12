@@ -1,94 +1,73 @@
-// 当表单发生提交行为的时候
+// - 为表单绑定提交事件，在事件处理函数中阻止表单默认提交的行为
+// - 在事件处理函数中获取到用户在表单中输入的内容
+// - 调用添加用户接口，将获取到的内容通过接口发送给服务器端
 $('#userForm').on('submit', function () {
-	// 获取到用户在表单中输入的内容并将内容格式化成参数字符串
 	var formData = $(this).serialize();
-	// 向服务器端发送添加用户的请求
 	$.ajax({
-		type: 'post',
-		url: '/users',
+		type: "post",
+		url: "/users",
 		data: formData,
-		success: function () {
-			// 刷新页面
-			location.reload();
+		success: function (response) {
+			location.reload()
 		},
-		error: function () {
-			alert('用户添加失败')
+		error: function (err) {
+			var res = JSON.parse(err.responseText)
+			alert(res.message)
 		}
-	})
-	// 阻止表单的默认提交行为
-	return false;
+
+	});
+	return false
 });
 
-// 当用户选择文件的时候
-$('#modifyBox').on('change', '#avatar', function () {
-	// 用户选择到的文件
-	// this.files[0]
-	var formData = new FormData();
-	formData.append('avatar', this.files[0]);
 
+// 为文件选择控件添加onchange事件，在事件处理函数中获取到用户选择到的文件
+// 创建formData对象用于实现图片文件上传
+// 调用图片文件上传接口，实现图片上传
+// 在添加新用户表单中新增一个隐藏域，将图片地址存储在隐藏域中
+$('#modifyBox').on('change', '#avatar', function () {
+	var formData = new FormData()
+	formData.append('avatar', this.files[0])
 	$.ajax({
-		type: 'post',
-		url: '/upload',
+		type: "post",
+		url: "/upload",
 		data: formData,
-		// 告诉$.ajax方法不要解析请求参数
+		// dataType: "dataType",
 		processData: false,
-		// 告诉$.ajax方法不要设置请求参数的类型
 		contentType: false,
 		success: function (response) {
-			console.log(response)
-			// 实现头像预览功能
-			$('#preview').attr('src', response[0].avatar);
+			console.log(response);
+			$('#preview').attr('src', response[0].avatar)
 			$('#hiddenAvatar').val(response[0].avatar)
-		}
-	})
-});
 
-// 向服务器端发送请求 索要用户列表数据
+		}
+	});
+})
+
+
+// 查询用户列表的接口文档，在页面加载时向服务器端发送Ajax请求，索要用户列表数据
+// 使用模板引擎将数据和html模板进行拼接
+// 将拼接好的内容展示在页面中
 $.ajax({
-	type: 'get',
-	url: '/users',
+	type: "get",
+	url: "/users",
 	success: function (response) {
-		console.log(response)
-		// 使用模板引擎将数据和HTML字符串进行拼接
 		var html = template('userTpl', { data: response });
-		// 将拼接好的字符串显示在页面中
 		$('#userBox').html(html);
 	}
 });
 
-// 通过事件委托的方式为编辑按钮添加点击事件
+// 通过事件委托的形式为编辑按钮点击添加事件
+// 在事件处理函数中获取到当前点击用户的id值
+// 根据用户id获取用户的详细信息，并且通过模板引擎将用户的详细信息渲染到左侧的表单中
+// 为修改按钮添加点击事件，在事件处理函数中获取到用户在表单中输入的内容，调用修改用户信息接口实现用户信息修改功能
 $('#userBox').on('click', '.edit', function () {
-	// 获取被点击用户的id值
-	var id = $(this).attr('data-id');
-	// 根据id获取用户的详细信息
+	var id = $(this).attr('data-id')
 	$.ajax({
-		type: 'get',
-		url : '/users/' + id,
+		type: "get",
+		url: "/users/" + id,
 		success: function (response) {
-			console.log(response)
-			var html = template('modifyTpl', response);
-			$('#modifyBox').html(html);
+		var html=template('modifyTpl',response)
+		$('#modifyBox').html(html);
 		}
-	})
-});
-
-// 为修改表单添加表单提交事件
-$('#modifyBox').on('submit', '#modifyForm', function () {
-	// 获取用户在表单中输入的内容
-	var formData = $(this).serialize();
-	// 获取要修改的那个用户的id值
-	var id = $(this).attr('data-id');
-	// 发送请求 修改用户信息
-	$.ajax({
-		type: 'put',
-		url: '/users/' + id,
-		data: formData,
-		success: function (response) {
-			// 修改用户信息成功 重新加载页面
-			location.reload()
-		}
-	})
-
-	// 阻止表单默认提交
-	return false;
-});
+	});
+})
